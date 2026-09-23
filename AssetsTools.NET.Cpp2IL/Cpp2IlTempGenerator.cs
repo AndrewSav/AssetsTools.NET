@@ -274,8 +274,10 @@ namespace AssetsTools.NET.Cpp2IL
                 field.Name = fieldDef.Name;
                 if (isPrimitive = fieldTypeDef.typeDef.IsEnumType)
                 {
-                    var enumType = fieldTypeDef.typeDef.GetEnumUnderlyingType().baseType.FullName;
-                    field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive(enumType);
+                    // Unity serializes an enum field as a 4-byte int whatever the enum's
+                    // underlying type is, so the underlying type must not be used here: an
+                    // `enum E : byte` field still takes 4 bytes and is not aligned.
+                    field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive("System.Int32");
                 }
                 else if (isPrimitive = CommonMonoTemplateHelper.IsPrimitiveType(fieldTypeDef.typeDef.FullName))
                 {
@@ -334,7 +336,10 @@ namespace AssetsTools.NET.Cpp2IL
 
                 if (isArrayOrList)
                 {
-                    if (isPrimitive || derivesFromUEObject)
+                    // A vector of strings must not itself be typed "string": a reader takes a
+                    // node of that type to be a string and reads the element count as its
+                    // length. Unity names the collection "vector", so do that here too.
+                    if (isPrimitive || derivesFromUEObject || field.Type == "string")
                     {
                         field = CommonMonoTemplateHelper.Vector(field);
                     }

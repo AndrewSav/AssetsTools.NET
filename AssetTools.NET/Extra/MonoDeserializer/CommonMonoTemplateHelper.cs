@@ -186,7 +186,11 @@ namespace AssetsTools.NET.Extra
                     ? AssetValueType.ByteArray
                     : AssetValueType.Array,
                 IsArray = true,
-                IsAligned = true,
+                // Unity aligns after an array only when its element is a type that needs
+                // aligning - bool, byte, sbyte, char, short, ushort. An array of structs,
+                // strings or 4-byte primitives is not aligned, so a blanket true here shifts
+                // every field that follows such an array.
+                IsAligned = TypeAligns(field.ValueType),
                 HasValue = true,
                 Children = new List<AssetTypeTemplateField>
                 {

@@ -196,8 +196,10 @@ namespace AssetsTools.NET.Extra
                 field.Name = fieldDef.Name;
                 if (isPrimitive = fieldTypeDef.typeDef.IsEnum)
                 {
-                    var enumType = fieldTypeDef.typeDef.GetEnumUnderlyingType().FullName;
-                    field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive(enumType);
+                    // Unity serializes an enum field as a 4-byte int whatever the enum's
+                    // underlying type is, so the underlying type must not be used here: an
+                    // `enum E : byte` field still takes 4 bytes and is not aligned.
+                    field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive("System.Int32");
                 }
                 else if (isPrimitive = fieldTypeDef.typeDef.IsPrimitive)
                 {
